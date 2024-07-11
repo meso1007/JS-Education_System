@@ -18,11 +18,11 @@ This project is a JavaScript-based Education System simulation designed for prac
 
 1. **Clone the Repository:**
    ```bash
-   git clone <repository_url>
+   git clone <git@github.com:meso1007/JS-Education_System.git>
    ```
 2. **Open in VS Code:**
    - Open VS Code.
-   - Use the File menu or drag-and-drop to open the `index.html` file.
+   - Use the File menu or drag-and-drop to open the `Index.html` file.
 3. **Login:**
    - Use the credentials from `student_list.json` to log in as a student.
    - Example:
