@@ -18,7 +18,7 @@ This project is a JavaScript-based Education System simulation designed for prac
 
 1. **Clone the Repository:**
    ```bash
-   git clone <git@github.com:meso1007/JS-Education_System.git>
+   git clone git@github.com:meso1007/JS-Education_System.git
    ```
 2. **Open in VS Code:**
    - Open VS Code.
