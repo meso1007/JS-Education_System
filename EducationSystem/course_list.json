@@ -1,0 +1,10 @@
+[{"courseID":11,"cname":"HTML Basics 101","credit":2},
+{"courseID":12,"cname":"CSS Styling Masterclass","credit":4},
+{"courseID":13,"cname":"JavaScript Fundamentals","credit":3},
+{"courseID":14,"cname":"Responsive Web Design Bootcamp","credit":4},
+{"courseID":15,"cname":"Node.js for Beginners","credit":3},
+{"courseID":16,"cname":"React.js Crash Course","credit":3},
+{"courseID":17,"cname":"Full Stack Development Certification","credit":2},
+{"courseID":18,"cname":"Python for Web Development","credit":3},
+{"courseID":19,"cname":"UX/UI Design Principles","credit":4},
+{"courseID":20,"cname":"Database Management Essentials","credit":4}]

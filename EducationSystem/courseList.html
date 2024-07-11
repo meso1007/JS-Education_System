@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Course List</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!-- Bootstrap CSS v5.2.1 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"
+      integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+
+  <body>
+    <header>
+      <!-- place navbar here -->
+    </header>
+    <main class="container-fluid">
+      <div class="row justify-content-center align-items-center g-2">
+        <div class="col" id="personDetails"></div>
+      </div>
+
+      <div class="row justify-content-center align-items-start g-2">
+        <div class="col-6" id="tableContainer"></div>
+        <div class="col-6" id="selectedCourseContainer"></div>
+      </div>
+    </main>
+    <footer>
+      <!-- place footer here -->
+    </footer>
+    <!-- Bootstrap JavaScript Libraries -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+      integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module">
+      import TableCompo from "./components/TableCompo.js";
+      import Sigma from "./classes/Sigma.js";
+      import { Student } from "./classes/classes.js";
+      let loginStudent = null;
+      if (sessionStorage.getItem("u") == null) {
+        location.replace("./Index.html");
+      } else {
+        const encData = sessionStorage.getItem("u");
+        const data = JSON.parse(
+          CryptoJS.AES.decrypt(encData, "Ryoko").toString(CryptoJS.enc.Utf8)
+        );
+        const headers = ["Student ID", "Student Name", "Email"];
+        const contents = [
+          [data.stid, `${data.fname} ${data.lname}`, data.email],
+        ];
+        const table = new TableCompo(
+          headers,
+          contents,
+          "studentDetailTb",
+          "info"
+        );
+        $("#personDetails").append(table.tableGen());
+        loginStudent = new Student(
+          data.stid,
+          data.fname,
+          data.lname,
+          data.email
+        );
+      }
+      const courseLoad = (courseList) => {
+        if (localStorage.getItem("stsco") != null) {
+          const studentCourses = JSON.parse(localStorage.getItem("stsco"));
+          let selectedCourses = null;
+          for (let obj of studentCourses) {
+            if (obj.stID == loginStudent.studentID) {
+              selectedCourses = obj.courses;
+              break;
+            }
+          }
+          if (selectedCourses != null && selectedCourses.length != 0) {
+            for (let courseObj of courseList) {
+              if (selectedCourses.indexOf(courseObj.courseID) != -1) {
+                loginStudent.courseEnrollment(courseObj);
+              }
+            }
+          }
+        }
+      };
+      const selectBtnHandler = (selectedTr, courseObj, removeFlag = false) => {
+        if (removeFlag) loginStudent.courseList.delete(courseObj.courseID);
+        else loginStudent.courseEnrollment(courseObj);
+        selectedTr.remove();
+        const tr = $("<tr></tr>");
+        for (let key in courseObj) {
+          const td = $("<td></td>");
+          td.text(courseObj[key]);
+          tr.append(td);
+        }
+        let button = null;
+        if (!removeFlag) {
+          button = $(
+            "<button type='button' class='btn btn-danger'>Remove</button>"
+          );
+          button.on("click", (e) => {
+            selectBtnHandler(
+              $(e.target).parentsUntil("tbody").not("td"),
+              courseObj,
+              true
+            );
+          });
+        } else {
+          button = $(
+            "<button type='button' class='btn btn-success'>Select</button>"
+          );
+          button.on("click", (e) => {
+            selectBtnHandler(
+              $(e.target).parentsUntil("tbody").not("td"),
+              courseObj
+            );
+          });
+        }
+        const td = $("<td></td>");
+        td.append(button);
+        tr.append(td);
+        const selectedTable = removeFlag
+          ? "#courseTable"
+          : "#selectedCourseTable";
+        $(`${selectedTable} tbody`).append(tr);
+      };
+      const courseToList = () => {
+        let tmpCourses = [];
+        for (let courseObj of loginStudent.getCourseList()) {
+          tmpCourses.push(courseObj.cid);
+        }
+        return tmpCourses;
+      };
+      const saveBtnHandler = () => {
+        const mainCourseList = new Map();
+        const outputArray = new Array();
+        if (localStorage.getItem("stsco") != null) {
+          let tmpCourseList = JSON.parse(localStorage.getItem("stsco"));
+          for (let courseObj of tmpCourseList) {
+            mainCourseList.set(courseObj.stID, courseObj.courses);
+          }
+        }
+        mainCourseList.set(loginStudent.studentID, courseToList());
+        for (let tmpCourse of mainCourseList) {
+          outputArray.push({ stID: tmpCourse[0], courses: tmpCourse[1] });
+        }
+        localStorage.setItem("stsco", JSON.stringify(outputArray));
+      };
+      const xhttp = new Sigma("http://127.0.0.1:5500/EducationSystem");
+      xhttp.request("GET", "course_list.json").then(
+        (data) => {
+          data = JSON.parse(data); //the course JSON
+          const headers = ["Course ID", "Course Name", "Credits", "Options"];
+          const contents = [];
+          for (let cObj of data) {
+            const tmpArray = [];
+            for (let key in cObj) {
+              tmpArray.push(cObj[key]);
+            }
+            const selectBtn = $(
+              "<button type='button' class='btn btn-success'>Select</button>"
+            );
+            selectBtn.on("click", (e) => {
+              selectBtnHandler(
+                $(e.target).parentsUntil("tbody").not("td"),
+                cObj
+              );
+            });
+            tmpArray.push(selectBtn);
+            contents.push(tmpArray);
+          }
+          const table = new TableCompo(
+            headers,
+            contents,
+            "courseTable",
+            "primary"
+          );
+          $("#tableContainer").append(table.tableGen());
+          courseLoad(data);
+          let tmpCourseList = [];
+          if (loginStudent.courseList.size > 0) {
+            for (let cObj of loginStudent.getCourseList()) {
+              const tmpArray = [];
+              for (let key in cObj) {
+                tmpArray.push(cObj[key]);
+              }
+              tmpCourseList.push(tmpArray);
+            }
+          }
+          const saveBtn = $(
+            "<button type='button' class='btn btn-danger'>Save Selected Courses</button>"
+          );
+          saveBtn.on("click", () => {
+            saveBtnHandler();
+          });
+          const courseTb = new TableCompo(
+            headers,
+            tmpCourseList,
+            "selectedCourseTable",
+            "success",
+            [[saveBtn]]
+          );
+          $("#selectedCourseContainer").append(courseTb.tableGen());
+        },
+        (errorObj) => {
+          alert(`${errorObj.code}: ${errorObj.errMsg}`);
+        }
+      );
+    </script>
+  </body>
+</html>
